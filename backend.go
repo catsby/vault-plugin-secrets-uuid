@@ -65,26 +65,10 @@ func (b *backend) paths() []*framework.Path {
 				logical.CreateOperation: &framework.PathOperation{
 					Callback: b.handleWrite,
 				},
-				// logical.DeleteOperation: &framework.PathOperation{
-				// 	Callback: b.handleDelete,
-				// 	Summary:  "Deletes the secret at the specified location.",
-				// },
 			},
-
-			// ExistenceCheck: b.handleExistenceCheck,
 		},
 	}
 }
-
-// TODO return nil/nil here if this is needed
-// func (b *backend) handleExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
-// 	out, err := req.Storage.Get(ctx, req.Path)
-// 	if err != nil {
-// 		return false, errwrap.Wrapf("existence check failed: {{err}}", err)
-// 	}
-
-// 	return out != nil, nil
-// }
 
 func (b *backend) handleWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	if req.ClientToken == "" {

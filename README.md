@@ -4,7 +4,7 @@ UUID is an example secrets engine plugin for [HashiCorp
 Vault](https://www.vaultproject.io/). It is meant for demonstration purposes
 only and should never be used in production.
 
-This engine was copied and modified from the example secrets/mock plugin from
+This engine was copied and modified from the example `secrets/mock` plugin from
 the [hashicorp/vault-guides][guides] repository.
 
 ## Usage
@@ -23,7 +23,6 @@ This will build the plugin binary and start the Vault dev server:
 $ make all
 ```
 
-## TODO: update below docs to be relevant for UUID
 Now open a new terminal window and run the following commands:
 ```
 # Open a new terminal window and export Vault dev server http address
@@ -33,10 +32,10 @@ $ export VAULT_ADDR='http://127.0.0.1:8200'
 $ make enable
 
 # Write a secret to the UUID secrets engine
-$ vault write uuid/new
-Success! 
-<example output>
-
+$ vault write -f uuid/new
+Key     Value
+---     -----
+uuid    fd1822bf-ff56-50cd-5680-dc513a0c5582
 ```
 
 [guides]: https://github.com/hashicorp/vault-guides
