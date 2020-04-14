@@ -74,34 +74,5 @@ ui/tmp
 ui/root
 http/bindata_assetfs.go
 
-# dependencies
-ui/node_modules
-ui/bower_components
 
-# misc
-ui/.DS_Store
-ui/.sass-cache
-ui/connect.lock
-ui/coverage/*
-ui/libpeerconnection.log
-ui/npm-debug.log
-ui/test-reports/*
-ui/testem.log
-
-# used for JS acceptance tests
-ui/tests/helpers/vault-keys.js
-ui/vault-ui-integration-server.pid
-
-# for building static assets
-node_modules
-
-# Website
-website/.bundle
-website/build/
-website/npm-debug.log
-website/vendor
-website/.bundle
-website/.cache
-website/assets/node_modules
-website/assets/public
-website/components/node_modules
+vault-plugins-secrets-uuid
