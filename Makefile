@@ -1,6 +1,10 @@
 GOARCH = amd64
 
 UNAME = $(shell uname -s)
+GO_CMD?=go
+TEST?=$$($(GO_CMD) list ./... | grep -v /vendor/ | grep -v /integ)
+TEST_TIMEOUT?=45m
+EXTENDED_TEST_TIMEOUT=60m
 
 ifndef OS
 	ifeq ($(UNAME), Linux)
@@ -34,5 +38,21 @@ clean:
 
 fmt:
 	go fmt $$(go list ./...)
+
+test:
+	@CGO_ENABLED=$(CGO_ENABLED) \
+	VAULT_ADDR= \
+	VAULT_TOKEN= \
+	VAULT_DEV_ROOT_TOKEN_ID= \
+	VAULT_ACC= \
+	$(GO_CMD) test $(TEST) $(TESTARGS) -timeout=$(TEST_TIMEOUT) -parallel=20
+
+# testacc runs acceptance tests
+testacc: 
+	@if [ "$(TEST)" = "./..." ]; then \
+		echo "ERROR: Set TEST to a specific package"; \
+		exit 1; \
+	fi
+	VAULT_ACC=1 $(GO_CMD) test $(TEST) -v $(TESTARGS) -timeout=$(EXTENDED_TEST_TIMEOUT)
 
 .PHONY: build clean fmt start enable
