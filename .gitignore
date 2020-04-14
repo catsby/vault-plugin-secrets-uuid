@@ -76,3 +76,4 @@ http/bindata_assetfs.go
 
 
 vault-plugins-secrets-uuid
+vault
