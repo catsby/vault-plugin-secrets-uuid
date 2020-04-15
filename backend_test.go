@@ -11,11 +11,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/api"
 	vaulthttp "github.com/hashicorp/vault/http"
 	"github.com/hashicorp/vault/sdk/acctest"
 	"github.com/hashicorp/vault/sdk/helper/consts"
 	"github.com/hashicorp/vault/sdk/logical"
+	"github.com/hashicorp/vault/sdk/plugin"
 	"github.com/hashicorp/vault/vault"
 	"github.com/y0ssar1an/q"
 )
@@ -32,18 +34,55 @@ func RunningAsPlugin() bool {
 	magicCookieValue :=
 		"6669da05-b1c8-4f49-97d9-c8e5bed98e20"
 
+	rap := os.Getenv(magicCookieKey) == magicCookieValue
+	q.Q("--> running as plugin:", rap)
+
 	return os.Getenv(magicCookieKey) == magicCookieValue
 }
 
 func TestMain(m *testing.M) {
+	q.Q("-->> starting TestMain from plugin")
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	q.Q("=>> current dir:", wd)
+	// run as plugin
+	if RunningAsPlugin() {
+		q.Q("-->> start run as plugin from TestMain")
+		apiClientMeta := &api.PluginAPIClientMeta{}
+		flags := apiClientMeta.FlagSet()
+		flags.Parse(os.Args[1:])
+		q.Q("osArgs1 from test:", os.Args[1:])
+
+		tlsConfig := apiClientMeta.GetTLSConfig()
+		tlsProviderFunc := api.VaultPluginTLSProvider(tlsConfig)
+
+		err := plugin.Serve(&plugin.ServeOpts{
+			BackendFactoryFunc: Factory,
+			TLSProviderFunc:    tlsProviderFunc,
+		})
+		if err != nil {
+			logger := hclog.New(&hclog.LoggerOptions{})
+			q.Q("plugin error:", err)
+
+			logger.Error("plugin shutting down", "error", err)
+			os.Exit(1)
+		}
+		// exit plugin run
+		os.Exit(0)
+	}
+
 	// run acc tests
 	if os.Getenv("VAULT_ACC") == "1" {
 		absPluginExecPath, _ := filepath.Abs(os.Args[0])
+		q.Q("plugin test--> abs: ", absPluginExecPath)
 		pluginName := path.Base(absPluginExecPath)
 		os.Link(absPluginExecPath, path.Join("/Users/clint/Desktop/plugins", pluginName))
 		// setup docker, send src and name
 		// run tests
 		coreConfig := &vault.CoreConfig{
+			DisableMlock: true,
 			LogicalBackends: map[string]logical.Factory{
 				"uuid": Factory,
 			},
@@ -53,6 +92,7 @@ func TestMain(m *testing.M) {
 			panic(err)
 		}
 		wd = path.Join(wd, "vault/plugins/uuid")
+		q.Q(">>= start compile")
 		cmd := exec.Command("go", "build", "-o", "./vault/plugins/uuid", "/Users/clint/go-src/github.com/catsby/vault-plugin-secrets-uuid/cmd/uuid/main.go")
 		var out bytes.Buffer
 		cmd.Stdout = &out
@@ -61,11 +101,13 @@ func TestMain(m *testing.M) {
 		if err != nil {
 			panic(err)
 		}
+		q.Q(">>= end compile")
 
 		// cluster, err := acctest.NewDockerCluster(t.Name(), coreConfig, nil)
 		// dOpts := &acctest.DockerClusterOptions{PluginTestBin: absPluginExecPath}
 		//TODO: cleanup working dir
 		dOpts := &acctest.DockerClusterOptions{PluginTestBin: wd}
+		q.Q("plugin test--> dopts: ", dOpts)
 		cluster, err := acctest.NewDockerCluster("test-uuid", coreConfig, dOpts)
 		if err != nil {
 			panic(err)
@@ -117,18 +159,12 @@ func TestAccUUID_Docker(t *testing.T) {
 		t.Log("VAULT_ACC is not set")
 		t.SkipNow()
 	}
-	q.Q("--> starting docker test")
+
 	if helper == nil {
 		t.Fatal("nil helper")
 	}
+
 	client := helper.Client
-	// s, lErr := client.Logical().Read("/sys/mounts")
-	// if lErr != nil {
-	// 	q.Q("list err:", lErr)
-	// } else {
-	// 	q.Q("secrets list not error")
-	// }
-	// q.Q("secret list s:", s)
 
 	err := client.Sys().Mount("uuid", &api.MountInput{
 		Type: "uuid",
