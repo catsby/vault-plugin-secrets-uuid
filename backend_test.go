@@ -9,31 +9,15 @@ import (
 	"github.com/hashicorp/vault/sdk/acctest"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/hashicorp/vault/vault"
-	"github.com/y0ssar1an/q"
 )
 
-var testHelper *acctest.Helper
-
-// // RunningAsPlugin returns true if it detects the usual Terraform plugin
-// // detection environment variables, suggesting that the current process is
-// // being launched as a plugin server.
-// // TODO: move to acctest package
-// func RunningAsPlugin() bool {
-// 	magicCookieKey :=
-// 		"VAULT_BACKEND_PLUGIN"
-// 	magicCookieValue :=
-// 		"6669da05-b1c8-4f49-97d9-c8e5bed98e20"
-
-// 	rap := os.Getenv(magicCookieKey) == magicCookieValue
-
-// 	return os.Getenv(magicCookieKey) == magicCookieValue
-// }
-
 func TestMain(m *testing.M) {
-	q.Q("-->> starting TestMain from plugin")
-	if err := acctest.Setup("uuid"); err != nil {
-		panic(err)
-	}
+	// Setup will create the docker cluster, then compile the plugin and register
+	// it. Setup will panic if something fails (for now at least)
+	acctest.Setup("uuid")
+
+	// acctest.Run wraps the normal m.Run() all with optional call to
+	// acctest.TestHelper.Cleanup() to tear down the Docker cluster
 	acctest.Run(m)
 }
 
@@ -43,11 +27,15 @@ func TestAccUUID_Docker(t *testing.T) {
 		t.SkipNow()
 	}
 
-	if testHelper == nil {
+	if acctest.TestHelper == nil {
 		t.Fatal("nil helper")
 	}
 
-	client := testHelper.Client
+	// TODO: function or method to make this safe
+	if acctest.TestHelper == nil {
+		t.Fatal("expected test helper")
+	}
+	client := acctest.TestHelper.Client
 
 	err := client.Sys().Mount("uuid", &api.MountInput{
 		Type: "uuid",
@@ -113,34 +101,4 @@ func TestUUID_Basic(t *testing.T) {
 	if s.Data["uuid"] == "" {
 		t.Fatalf("empty data/uuid: %#v", s.Data)
 	}
-
-	// _, err = client.Logical().Write("transit/keys/foobar", map[string]interface{}{
-	// 	"type": "ecdsa-p384",
-	// })
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// _, err = client.Logical().Write("transit/keys/bar", map[string]interface{}{
-	// 	"type": "ed25519",
-	// })
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// _, err = client.Logical().Read("transit/keys/foo")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// _, err = client.Logical().Read("transit/keys/foobar")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// _, err = client.Logical().Read("transit/keys/bar")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
 }
