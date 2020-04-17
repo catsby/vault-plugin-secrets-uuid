@@ -147,7 +147,9 @@ func TestMain(m *testing.M) {
 		}
 
 		// run tests
-		os.Exit(m.Run())
+		stat := m.Run()
+		cluster.Cleanup()
+		os.Exit(stat)
 	} else {
 		// run normal test
 		os.Exit(m.Run())
