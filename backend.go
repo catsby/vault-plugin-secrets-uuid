@@ -46,18 +46,7 @@ func (b *backend) paths() []*framework.Path {
 		{
 			Pattern: framework.MatchAllRegex("new"),
 
-			// Fields: map[string]*framework.FieldSchema{
-			// 	"new": {
-			// 		Type:        framework.TypeString,
-			// 		Description: "Generates a new UUID.",
-			// 	},
-			// },
-
 			Operations: map[logical.Operation]framework.OperationHandler{
-				// logical.ReadOperation: &framework.PathOperation{
-				// 	Callback: b.handleRead,
-				// 	Summary:  "Retrieve the secret from the map.",
-				// },
 				logical.UpdateOperation: &framework.PathOperation{
 					Callback: b.handleWrite,
 					Summary:  "Store a secret at the specified location.",
