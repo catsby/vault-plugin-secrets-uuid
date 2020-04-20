@@ -58,7 +58,7 @@ func TestAccUUID_Docker(t *testing.T) {
 	t.Logf("got uuid: %#v", s.Data["uuid"])
 }
 
-// TODO: remove this POC
+// TestUUID_Basic is an example test using NewTestCluster
 func TestUUID_Basic(t *testing.T) {
 	if os.Getenv("VAULT_ACC") != "" {
 		t.Log("VAULT_ACC is not set")

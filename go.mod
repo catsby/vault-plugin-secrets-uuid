@@ -2,7 +2,7 @@ module github.com/catsby/vault-plugin-secrets-uuid
 
 go 1.14
 
-// replace github.com/hashicorp/vault/sdk => /Users/clint/go-src/github.com/hashicorp/vault/sdk
+replace github.com/hashicorp/vault/sdk => /Users/clint/go-src/github.com/hashicorp/vault/sdk
 
 require (
 	github.com/hashicorp/go-hclog v0.12.0
