@@ -13,13 +13,13 @@ import (
 
 // Factory configures and returns uuid backends
 func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
-	b := &backend{
-		store: make(map[string][]byte),
-	}
-
+	var b backend
 	b.Backend = &framework.Backend{
 		Help:        strings.TrimSpace(uuidHelp),
 		BackendType: logical.TypeLogical,
+		Secrets: []*framework.Secret{
+			secretUUID(&b),
+		},
 	}
 
 	b.Backend.Paths = append(b.Backend.Paths, b.paths()...)
@@ -64,15 +64,20 @@ func (b *backend) handleWrite(ctx context.Context, req *logical.Request, data *f
 		return nil, fmt.Errorf("client token empty")
 	}
 
-	output := make(map[string]interface{})
+	// output := make(map[string]interface{})
 	uuidStr, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, fmt.Errorf("error making UUID: %s", err)
 	}
-	output["uuid"] = uuidStr
-	return &logical.Response{
-		Data: output,
-	}, nil
+	// output["uuid"] = uuidStr
+	// return &logical.Response{
+	// 	Data: output,
+	// }, nil
+
+	resp := b.Secret(SecretUUIDType).Response(map[string]interface{}{
+		"uuid": uuidStr,
+	}, nil)
+	return resp, nil
 }
 
 const uuidHelp = `
